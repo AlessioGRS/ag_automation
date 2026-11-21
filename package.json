@@ -1,0 +1,12 @@
+{
+  "name": "ag-automation-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "dev": "wrangler pages dev . --port 8788"
+  },
+  "devDependencies": {
+    "wrangler": "4.166.0"
+  }
+}
