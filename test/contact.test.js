@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { handleContact } from '../functions/api/contact.js';
+import { handleContact } from '../src/contact.js';
 
 const env = {
   TURNSTILE_SECRET_KEY: 'secret',

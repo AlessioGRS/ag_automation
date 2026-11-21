@@ -3,20 +3,15 @@
 // Bot protection: a hidden honeypot field plus a Cloudflare Turnstile token verified here.
 // Delivery: Resend HTTP API, sent from MAIL_FROM to MAIL_TO with Reply-To set to the visitor.
 //
-// Environment (Cloudflare Pages > Settings > Variables and secrets):
-//   TURNSTILE_SECRET_KEY  secret
-//   RESEND_API_KEY        secret
-//   MAIL_TO               recipient, e.g. alessio.grasselli@outlook.com
-//   MAIL_FROM             verified sender, e.g. "AG Automation <noreply@agautomation.it>"
+// Environment:
+//   TURNSTILE_SECRET_KEY  secret, set in the Cloudflare dashboard (Worker > Settings > Variables and Secrets)
+//   RESEND_API_KEY        secret, set in the Cloudflare dashboard
+//   MAIL_TO, MAIL_FROM    plain vars, defined in wrangler.jsonc
 
 const LIMITS = { name: 120, email: 254, company: 160, message: 5000 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function onRequestPost({ request, env }) {
-  return handleContact(request, env, fetch);
-}
-
-export async function handleContact(request, env, fetchImpl) {
+export async function handleContact(request, env, fetchImpl = fetch) {
   let body;
   try {
     body = await request.json();
