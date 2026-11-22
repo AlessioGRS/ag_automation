@@ -14,6 +14,13 @@
     "MAIL_TO": "alessio.grasselli@outlook.com",
     "MAIL_FROM": "AG Automation <noreply@agautomation.it>"
   },
+  // Branch previews (Workers Builds) need their own vars. Same recipient: preview test mails go to Alessio too.
+  "previews": {
+    "vars": {
+      "MAIL_TO": "alessio.grasselli@outlook.com",
+      "MAIL_FROM": "AG Automation <noreply@agautomation.it>"
+    }
+  },
   // TURNSTILE_SECRET_KEY and RESEND_API_KEY are secrets set in the dashboard, never here.
   "observability": { "enabled": true }
 }
