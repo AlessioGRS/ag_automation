@@ -13,6 +13,8 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+
   <style>
     /* ─── TOKENS ─────────────────────────────────────────── */
     :root {
@@ -641,6 +643,9 @@
       align-self: flex-start;
     }
     .form-submit:hover { opacity: 0.85; }
+    .form-submit:disabled { opacity: 0.6; cursor: progress; }
+    .form-error { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; color: oklch(0.72 0.17 25); }
+    .form-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
     /* ─── FOOTER ─────────────────────────────────────────── */
     footer {
@@ -758,10 +763,11 @@
           h2a: "Let's work", h2b: 'together.',
           blurb: "Have a project that needs precision engineering? I'm available for freelance engagements — short sprints or long-term contracts.",
           location: 'San Ginesio (MC), Italy',
-          fields: { name:'Name', email:'Email', company:'Company / Project', message:'Message', submit:'Send message →', sending:'Sending...', namePh:'Jane Smith', companyPh:'Acme Corp', messagePh:'Tell me about your project...' },
+          fields: { name:'Name', email:'Email', company:'Company / Project', message:'Message', submit:'Send message →', sending:'Sending…', namePh:'Jane Smith', companyPh:'Acme Corp', messagePh:'Tell me about your project...' },
           successTitle: 'Message received',
           successMsg: "Thanks — I'll be in touch shortly.",
           successSub: 'Typical response time: within 24h.',
+          errors: { invalid: 'Please fill in your name, a valid email and a message.', captcha: 'The anti-spam check did not pass. Wait a moment and try again.', send: 'The message did not go through. Try again, or write to alessio.grasselli@outlook.com.' },
         },
         footer: 'Software Engineering & Automation',
         footerCopy: '© 2026 AG Automation. All rights reserved.',
@@ -821,10 +827,11 @@
           h2a: 'Lavoriamo', h2b: 'insieme.',
           blurb: "Hai un progetto che richiede ingegneria di precisione? Sono disponibile per incarichi freelance — sprint brevi o contratti a lungo termine.",
           location: 'San Ginesio (MC), Italia',
-          fields: { name:'Nome', email:'Email', company:'Azienda / Progetto', message:'Messaggio', submit:'Invia messaggio →', sending:'Invio...', namePh:'Mario Rossi', companyPh:'Acme Srl', messagePh:'Raccontami del tuo progetto...' },
+          fields: { name:'Nome', email:'Email', company:'Azienda / Progetto', message:'Messaggio', submit:'Invia messaggio →', sending:'Invio…', namePh:'Mario Rossi', companyPh:'Acme Srl', messagePh:'Raccontami del tuo progetto...' },
           successTitle: 'Messaggio ricevuto',
           successMsg: "Grazie — ti risponderò a breve.",
           successSub: 'Tempo di risposta tipico: entro 24h.',
+          errors: { invalid: 'Scrivi il tuo nome, una email valida e un messaggio.', captcha: 'Il controllo anti-spam non è andato a buon fine. Attendi un attimo e riprova.', send: 'Il messaggio non è partito. Riprova, oppure scrivi a alessio.grasselli@outlook.com.' },
         },
         footer: 'Ingegneria Software & Automazione',
         footerCopy: '© 2026 AG Automation. Tutti i diritti riservati.',
@@ -883,31 +890,63 @@
     }
 
     /* ── CONTACT FORM ──────────────────────────────────────── */
+    // Public Turnstile site key. On localhost Cloudflare's always-pass test key is used instead.
+    const TURNSTILE_SITE_KEY = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+      ? '1x00000000000000000000AA'
+      : '0x4AAAAAAGMG81sCzhnKwsWc';
+
     function ContactForm({ t }) {
       const f = t.contact.fields;
-      const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
+      const [form, setForm] = useState({ name: '', email: '', company: '', message: '', website: '' });
       const [status, setStatus] = useState('idle');
+      const [error, setError] = useState('');
+      const widget = useRef(null);
+      const widgetId = useRef(null);
+      const token = useRef('');
+
+      useEffect(() => {
+        let cancelled = false;
+        const mount = () => {
+          if (cancelled || !widget.current) return;
+          if (!window.turnstile) { setTimeout(mount, 100); return; }
+          widgetId.current = window.turnstile.render(widget.current, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'dark',
+            appearance: 'interaction-only',
+            callback: (v) => { token.current = v; },
+            'expired-callback': () => { token.current = ''; },
+            'error-callback': () => { token.current = ''; },
+          });
+        };
+        mount();
+        return () => {
+          cancelled = true;
+          if (widgetId.current !== null && window.turnstile) window.turnstile.remove(widgetId.current);
+        };
+      }, []);
 
       const handle = (e) => setForm(prev => ({...prev, [e.target.name]: e.target.value}));
       const submit = async (e) => {
         e.preventDefault();
+        setError('');
+        if (!e.currentTarget.checkValidity()) { setError(t.contact.errors.invalid); return; }
+        if (!token.current) { setError(t.contact.errors.captcha); return; }
         setStatus('sending');
+        let code = 'send';
         try {
-          const res = await fetch('https://formspree.io/f/xykvoken', {
+          const res = await fetch('/api/contact', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form),
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ ...form, token: token.current }),
           });
-          if (res.ok) {
-            setStatus('sent');
-          } else {
-            setStatus('idle');
-            alert('Something went wrong. Please try again or email me directly at alessio.grasselli@outlook.com');
-          }
-        } catch {
-          setStatus('idle');
-          alert('Network error. Please try again or email me directly at alessio.grasselli@outlook.com');
-        }
+          if (res.ok) { setStatus('sent'); return; }
+          code = (await res.json().catch(() => ({}))).error || 'send';
+        } catch {}
+        // Tokens are single use: get a fresh one for the next attempt.
+        token.current = '';
+        if (widgetId.current !== null && window.turnstile) window.turnstile.reset(widgetId.current);
+        setStatus('idle');
+        setError(t.contact.errors[code] || t.contact.errors.send);
       };
 
       if (status === 'sent') {
@@ -921,7 +960,10 @@
       }
 
       return (
-        <form className="contact-form" onSubmit={submit}>
+        <form className="contact-form" onSubmit={submit} noValidate>
+          <div className="form-trap" aria-hidden="true">
+            <label>Website<input name="website" value={form.website} onChange={handle} tabIndex={-1} autoComplete="off" /></label>
+          </div>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">{f.name}</label>
@@ -940,9 +982,12 @@
             <label className="form-label">{f.message}</label>
             <textarea className="form-textarea" name="message" value={form.message} onChange={handle} required placeholder={f.messagePh} />
           </div>
+          {error && <p className="form-error" role="alert">{error}</p>}
           <button className="form-submit" type="submit" disabled={status === 'sending'}>
             {status === 'sending' ? f.sending : f.submit}
           </button>
+          {/* Last child: Turnstile stays invisible unless it needs a click, so it must not add a flex gap mid-form. */}
+          <div ref={widget} className="form-captcha" />
         </form>
       );
     }

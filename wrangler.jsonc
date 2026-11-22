@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the Worker's name in the Cloudflare dashboard, or a deploy creates a second Worker.
+  "name": "ag-automation",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    // Everything else is served straight from public/ without invoking the Worker.
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "MAIL_TO": "alessio.grasselli@outlook.com",
+    "MAIL_FROM": "AG Automation <noreply@agautomation.it>"
+  },
+  // Branch previews (Workers Builds) need their own vars. Same recipient: preview test mails go to Alessio too.
+  "previews": {
+    "vars": {
+      "MAIL_TO": "alessio.grasselli@outlook.com",
+      "MAIL_FROM": "AG Automation <noreply@agautomation.it>"
+    }
+  },
+  // TURNSTILE_SECRET_KEY and RESEND_API_KEY are secrets set in the dashboard, never here.
+  "observability": { "enabled": true }
+}
