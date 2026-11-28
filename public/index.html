@@ -568,14 +568,23 @@
       width: 100%;
       max-width: 560px;
       height: auto;
-      aspect-ratio: 16 / 9;
-      object-fit: cover;
       border: 1px solid var(--border);
     }
+    .project-link {
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--accent);
+      border-bottom: 1px solid var(--accent-dim);
+      transition: border-color 0.2s;
+    }
+    .project-link:hover { border-bottom-color: var(--accent); }
     /* Cards with an image: centered text block with the image on its right. */
     .project-row.has-image { flex-direction: row; justify-content: center; gap: 3rem; }
     .project-row.has-image .project-info { flex: 0 1 560px; }
     .project-row.has-image .project-image { flex: 0 1 360px; min-width: 0; }
+    /* Portrait images get a narrower column so the card does not grow too tall. */
+    .project-row.has-image .project-image.portrait { flex-basis: 280px; }
 
     /* ─── CONTACT ────────────────────────────────────────── */
     #contact { background: var(--bg2); border-top: 1px solid var(--border); }
@@ -698,6 +707,7 @@
       .stack-row { grid-template-columns: 120px 1fr; }
       .project-row, .project-row.has-image { flex-direction: column; gap: 1.5rem; padding: 2rem 1.25rem; }
       .project-row.has-image .project-info, .project-row.has-image .project-image { flex: none; }
+      .project-image.portrait { max-width: 320px; }
       .form-row { grid-template-columns: 1fr; }
       .hero-bottom { flex-direction: column; }
       .hero-photo { max-width: 100%; aspect-ratio: 1 / 1; }
@@ -762,6 +772,7 @@
           h2: 'Selected work',
           items: [
             { id: 'motor-line', name: 'Electric Motor Production Line', desc: 'End-to-end automation software for a high-throughput electric motor assembly line. Designed the PLC control architecture using Beckhoff TwinCAT, integrated with MES and SCADA layers for full traceability.' },
+            { id: 'line-twin', name: 'Palletizing Line Digital Twin', desc: 'Digital twin of an existing line with two differently shaped parts, sorted onto two branches and palletized by a KUKA robot, with signals over OPC UA and a web HMI with a 3D view. It served as a test bench to develop and commission the PC-based MES without stopping production.', linkText: 'Try the simulator in your browser →', imageAlt: '3D view of the simulated line: a robot palletizing green and black parts coming from two conveyors' },
             { id: 'drive-testing', name: 'Electric Drives Software Testing', desc: 'Developed automated test software for electric drive units across multiple vehicle platforms. Reduced manual testing time by automating test sequences and generating structured reports.' },
             { id: 'results-db', name: 'Results Databases', desc: 'Designed and built centralised results database systems for manufacturing quality data — including APIs for real-time data ingestion from production machines and reporting dashboards.' },
             { id: 'solar-tracking', name: 'Solar Tracker Control Platform', desc: 'Complete control platform for solar tracking photovoltaic plants: embedded firmware for standalone boards, a wireless network and a configuration and monitoring application for plants with more than a thousand units.', imageAlt: 'Solar tracker in a photovoltaic plant with the monitoring application open on a laptop' },
@@ -827,6 +838,7 @@
           h2: 'I miei progetti',
           items: [
             { id: 'motor-line', name: 'Linea di Produzione Motori Elettrici', desc: 'Software di automazione end-to-end per una linea di assemblaggio di motori elettrici ad alto rendimento. Progettata l\'architettura PLC con Beckhoff TwinCAT, integrata con livelli MES e SCADA per la piena tracciabilità.' },
+            { id: 'line-twin', name: 'Gemello Digitale di una Linea di Pallettizzazione', desc: 'Gemello digitale di una linea esistente con due pezzi di forma diversa, smistati su due rami e pallettizzati da un robot KUKA, con segnali via OPC UA e HMI web con vista 3D. È servito come banco di prova per sviluppare e collaudare il sistema MES al PC, senza fermare la produzione.', linkText: 'Guarda il simulatore sul tuo browser →', imageAlt: 'Vista 3D della linea simulata: un robot pallettizza pezzi verdi e neri provenienti da due nastri' },
             { id: 'drive-testing', name: 'Test Software Azionamenti Elettrici', desc: 'Sviluppato software di test automatizzato per unità di azionamento elettrico su più piattaforme veicolo. Ridotto il tempo di test manuale automatizzando le sequenze di test e generando report strutturati.' },
             { id: 'results-db', name: 'Database Risultati', desc: 'Progettati e costruiti sistemi centralizzati di database per i dati di qualità della produzione — incluse API per l\'acquisizione dati in tempo reale dalle macchine di produzione e dashboard di reporting.' },
             { id: 'solar-tracking', name: 'Piattaforma di Controllo Inseguitori Solari', desc: 'Piattaforma completa di controllo per impianti fotovoltaici a inseguimento solare: firmware embedded per schede autonome, rete wireless e applicazione di configurazione e monitoraggio per impianti con oltre mille unità.', imageAlt: 'Inseguitore solare in un impianto fotovoltaico con l\'applicazione di monitoraggio aperta su un portatile' },
@@ -1050,9 +1062,10 @@
       // Set visible: false to hide a project from the site without deleting it.
       const projectMeta = {
         'motor-line':     { visible: true, tags: ['Beckhoff','C#','SCADA','Automotive'] },
+        'line-twin':      { visible: true, tags: ['Digital Twin','OPC UA','KUKA','MES','Web HMI','3D'], image: 'Progetti/productionLine/productionLine.jpg', imageWidth: 900, imageHeight: 1066, link: 'https://demo-linea-robot.agautomation.it/' },
         'drive-testing':  { visible: true, tags: ['.NET','Test Automation','ADS Protocol','EV'] },
         'results-db':     { visible: true, tags: ['SQL Server','ASP.NET','REST API','Quality Mgmt'] },
-        'solar-tracking': { visible: true, tags: ['ESP32','Embedded Firmware','Wireless','Monitoring','Photovoltaics'], image: 'Progetti/pannelli/pannello.jpg' },
+        'solar-tracking': { visible: true, tags: ['ESP32','Embedded Firmware','Wireless','Monitoring','Photovoltaics'], image: 'Progetti/pannelli/pannello.jpg', imageWidth: 1200, imageHeight: 675 },
       };
       const visibleProjects = projects.items
         .map(item => ({ ...item, ...projectMeta[item.id] }))
@@ -1210,13 +1223,17 @@
                     <div className="project-info">
                       <div className="project-name">{proj.name}</div>
                       <div className="project-desc">{proj.desc}</div>
+                      {proj.link && (
+                        <a className="project-link" href={proj.link} target="_blank" rel="noopener">{proj.linkText}</a>
+                      )}
                       <div className="project-tags">
                         {proj.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
                       </div>
                     </div>
                     {proj.image && (
-                      <img className="project-image" src={proj.image} alt={proj.imageAlt}
-                           width="1200" height="675" loading="lazy" decoding="async" />
+                      <img className={proj.imageHeight > proj.imageWidth ? 'project-image portrait' : 'project-image'}
+                           src={proj.image} alt={proj.imageAlt}
+                           width={proj.imageWidth} height={proj.imageHeight} loading="lazy" decoding="async" />
                     )}
                   </div>
                 ))}

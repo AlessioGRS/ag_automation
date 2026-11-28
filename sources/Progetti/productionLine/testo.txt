@@ -1,0 +1,4 @@
+Gemello digitale di una linea esistente con due pezzi di forma diversa, smistati su due rami e pallettizzati da un
+  robot KUKA, con segnali via OPC UA e HMI web con vista 3D.
+  È servito come banco di prova per sviluppare e collaudare il sistema MES al PC, senza fermare la produzione.
+Guarda il simulatore sul tuo browser [Cliccabile - rimanda a https://demo-linea-robot.agautomation.it/]
