@@ -1,0 +1,1 @@
+Piattaforma completa di controllo per impianti fotovoltaici a inseguimento solare firmware embedded per schede autonome, rete wireless e applicazione di configurazione e monitoraggio per impianti con oltre mille unità.
