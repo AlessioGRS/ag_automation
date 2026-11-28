@@ -570,8 +570,9 @@
       height: auto;
       border: 1px solid var(--border);
     }
+    /* Sits close to the description and keeps more room before the tags. */
     .project-link {
-      margin-top: 0.6rem;
+      margin: 0.1rem 0 0.6rem;
       font-size: 0.85rem;
       font-weight: 500;
       color: var(--accent);
@@ -1062,7 +1063,7 @@
       // Set visible: false to hide a project from the site without deleting it.
       const projectMeta = {
         'motor-line':     { visible: true, tags: ['Beckhoff','C#','SCADA','Automotive'] },
-        'line-twin':      { visible: true, tags: ['Digital Twin','OPC UA','KUKA','MES','Web HMI','3D'], image: 'Progetti/productionLine/productionLine.jpg', imageWidth: 900, imageHeight: 1066, link: 'https://demo-linea-robot.agautomation.it/' },
+        'line-twin':      { visible: true, tags: ['Digital Twin','OPC UA','KUKA','MES','Web HMI','3D'], image: 'Progetti/productionLine/productionLine.jpg', imageWidth: 900, imageHeight: 1067, link: 'https://demo-linea-robot.agautomation.it/' },
         'drive-testing':  { visible: true, tags: ['.NET','Test Automation','ADS Protocol','EV'] },
         'results-db':     { visible: true, tags: ['SQL Server','ASP.NET','REST API','Quality Mgmt'] },
         'solar-tracking': { visible: true, tags: ['ESP32','Embedded Firmware','Wireless','Monitoring','Photovoltaics'], image: 'Progetti/pannelli/pannello.jpg', imageWidth: 1200, imageHeight: 675 },
